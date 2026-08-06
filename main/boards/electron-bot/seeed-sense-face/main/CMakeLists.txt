@@ -1,0 +1,16 @@
+idf_component_register(
+    SRCS
+        "face_detector_main.cpp"
+        "uart_notifier.c"
+        "color_gender_analyzer.c"
+    INCLUDE_DIRS
+        "."
+    REQUIRES
+        esp_driver_uart
+        esp_driver_gpio
+        esp_timer
+        esp32-camera
+        esp-dl
+        human_face_detect
+        esp_new_jpeg
+)

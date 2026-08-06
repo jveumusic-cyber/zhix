@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ElectronBot × Seeed XIAO ESP32S3 Sense 硬件连接图</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin-bottom: 40px;
+  }
+
+  /* ── 主图区 ── */
+  .diagram-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0;
+    margin-bottom: 48px;
+    overflow-x: auto;
+    padding: 8px;
+  }
+  .board {
+    background: #1e2433;
+    border-radius: 16px;
+    padding: 20px 18px;
+    min-width: 220px;
+    position: relative;
+  }
+  .board-title {
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+  }
+  .electron-title { background: #1d4ed8; color: #bfdbfe; }
+  .seeed-title    { background: #065f46; color: #a7f3d0; }
+
+  .pin-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pin-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+  }
+  /* ElectronBot 引脚行 — 右对齐，连接线在右侧 */
+  .pin-row.right-side {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+  .pin-badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .badge-uart   { background: #7c3aed33; color: #c4b5fd; border: 1px solid #7c3aed; }
+  .badge-power  { background: #b45309aa; color: #fde68a; border: 1px solid #b45309; }
+  .badge-ground { background: #27272a;   color: #a1a1aa;  border: 1px solid #52525b; }
+  .badge-servo  { background: #0e7490aa; color: #a5f3fc; border: 1px solid #0e7490; }
+  .badge-i2s    { background: #15803d55; color: #86efac; border: 1px solid #15803d; }
+  .badge-spi    { background: #9f1239aa; color: #fda4af; border: 1px solid #9f1239; }
+  .badge-cam    { background: #854d0e88; color: #fcd34d; border: 1px solid #854d0e; }
+  .badge-note   { background: #1e293b;   color: #94a3b8;  border: 1px dashed #475569; }
+
+  .pin-desc { color: #94a3b8; font-size: 0.78rem; }
+
+  /* ── 中间连接线区域 ── */
+  .wire-zone {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0 8px;
+    gap: 0;
+    min-width: 160px;
+  }
+  .wire-label {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 8px;
+  }
+
+  /* SVG 连接线 */
+  .wires-svg {
+    width: 160px;
+    flex-shrink: 0;
+    align-self: stretch;
+  }
+
+  /* ── 连接表格 ── */
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-left: 4px;
+    border-left: 4px solid #6366f1;
+    padding-left: 12px;
+    color: #c7d2fe;
+  }
+  .connection-table-wrap {
+    overflow-x: auto;
+    margin-bottom: 48px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  thead tr { background: #1e2433; }
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    color: #94a3b8;
+    font-weight: 600;
+    border-bottom: 1px solid #334155;
+  }
+  tbody tr { border-bottom: 1px solid #1e293b; transition: background .15s; }
+  tbody tr:hover { background: #1e2433; }
+  td { padding: 10px 16px; vertical-align: middle; }
+  .wire-color {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+    border: 2px solid rgba(255,255,255,.15);
+  }
+  .highlight-row td { background: #1a2744; }
+
+  /* ── 时序图 ── */
+  .flow-wrap {
+    margin-bottom: 48px;
+    overflow-x: auto;
+  }
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-width: 700px;
+  }
+  .flow-step {
+    flex: 1;
+    background: #1e2433;
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+    font-size: 0.82rem;
+    position: relative;
+  }
+  .flow-step .step-num {
+    display: block;
+    font-size: 0.7rem;
+    color: #6366f1;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .flow-step .step-icon { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+  .flow-step .step-text { color: #cbd5e1; }
+  .flow-arrow {
+    color: #6366f1;
+    font-size: 1.4rem;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+  .flow-step.cam-step  { border-top: 2px solid #16a34a; }
+  .flow-step.uart-step { border-top: 2px solid #7c3aed; }
+  .flow-step.act-step  { border-top: 2px solid #2563eb; }
+  .flow-step.voice-step{ border-top: 2px solid #ea580c; }
+
+  /* ── 注意事项 ── */
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .note-card {
+    background: #1e2433;
+    border-radius: 12px;
+    padding: 16px 18px;
+    border-left: 3px solid #6366f1;
+  }
+  .note-card.warn { border-left-color: #f59e0b; }
+  .note-card.tip  { border-left-color: #10b981; }
+  .note-title { font-weight: 700; font-size: 0.88rem; margin-bottom: 8px; color: #e2e8f0; }
+  .note-body  { font-size: 0.82rem; color: #94a3b8; line-height: 1.6; }
+  code {
+    background: #0f172a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85em;
+    color: #a5f3fc;
+  }
+
+  /* ── 页脚 ── */
+  footer {
+    text-align: center;
+    font-size: 0.78rem;
+    color: #475569;
+    padding-top: 24px;
+    border-top: 1px solid #1e293b;
+  }
+</style>
+</head>
+<body>
+
+<h1>⚡ ElectronBot × Seeed XIAO ESP32S3 Sense</h1>
+<p class="subtitle">人员识别联动 · 硬件接线示意图 &nbsp;|&nbsp; 小智AI项目扩展方案 v2（颜色 + 性别 + 去重问候）</p>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     主图：双板示意
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="diagram-container">
+
+  <!-- ── ElectronBot 主控 ── -->
+  <div class="board" style="min-width:235px">
+    <div class="board-title electron-title">🤖 ElectronBot 主控<br><small style="font-weight:400;font-size:.8em">ESP32-S3 · 主机</small></div>
+    <ul class="pin-list">
+      <li class="pin-row right-side">
+        <span class="pin-badge badge-uart">GPIO1 (UART2-RX)</span>
+        <span class="pin-desc">← 接收人脸通知</span>
+      </li>
+      <li class="pin-row right-side">
+        <span class="pin-badge badge-ground">GND</span>
+        <span class="pin-desc">共地</span>
+      </li>
+      <li class="pin-row right-side" style="margin-top:8px;opacity:.55">
+        <span class="pin-badge badge-servo">GPIO4,5,6,7,15,16</span>
+        <span class="pin-desc">6路舵机 PWM</span>
+      </li>
+      <li class="pin-row right-side" style="opacity:.55">
+        <span class="pin-badge badge-i2s">GPIO17,18,8,40,41,42</span>
+        <span class="pin-desc">I2S 音频 (SPK+MIC)</span>
+      </li>
+      <li class="pin-row right-side" style="opacity:.55">
+        <span class="pin-badge badge-spi">GPIO9-13,46</span>
+        <span class="pin-desc">SPI 240×240 显示屏</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ── SVG 连接线 ── -->
+  <svg class="wires-svg" viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 标题 -->
+    <text x="80" y="18" text-anchor="middle" fill="#64748b" font-size="11" font-family="sans-serif">UART 连接线</text>
+
+    <!-- TX → RX 连线（紫色） -->
+    <line x1="140" y1="55" x2="20" y2="55" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="6 3"/>
+    <polygon points="20,52 8,55 20,58" fill="#a78bfa"/>
+    <text x="80" y="48" text-anchor="middle" fill="#a78bfa" font-size="10" font-family="sans-serif">TX (GPIO43)</text>
+    <text x="80" y="67" text-anchor="middle" fill="#a78bfa" font-size="10" font-family="sans-serif">→ RX (GPIO1)</text>
+
+    <!-- 标注 115200 baud -->
+    <rect x="42" y="73" width="76" height="18" rx="4" fill="#1e1b4b"/>
+    <text x="80" y="85" text-anchor="middle" fill="#818cf8" font-size="10" font-family="sans-serif">115200 8N1</text>
+
+    <!-- GND 连线（灰色） -->
+    <line x1="140" y1="115" x2="20" y2="115" stroke="#6b7280" stroke-width="2"/>
+    <polygon points="20,112 8,115 20,118" fill="#6b7280"/>
+    <text x="80" y="108" text-anchor="middle" fill="#6b7280" font-size="10" font-family="sans-serif">GND</text>
+    <text x="80" y="127" text-anchor="middle" fill="#6b7280" font-size="10" font-family="sans-serif">⟺ GND (必须共地)</text>
+
+    <!-- 可选 3.3V（橙色虚线） -->
+    <line x1="140" y1="160" x2="20" y2="160" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.6"/>
+    <text x="80" y="153" text-anchor="middle" fill="#f59e0b" font-size="9.5" font-family="sans-serif" opacity="0.6">3.3V (可选供电)</text>
+    <text x="80" y="172" text-anchor="middle" fill="#f59e0b" font-size="9.5" font-family="sans-serif" opacity="0.6">建议 Seeed 独立 USB</text>
+
+    <!-- 横向说明箭头 -->
+    <text x="80" y="195" text-anchor="middle" fill="#334155" font-size="9" font-family="sans-serif">——— 最少 2 根线 ———</text>
+  </svg>
+
+  <!-- ── Seeed XIAO ESP32S3 Sense ── -->
+  <div class="board" style="min-width:235px">
+    <div class="board-title seeed-title">📷 Seeed XIAO ESP32S3 Sense<br><small style="font-weight:400;font-size:.8em">ESP32-S3 · 从机（人脸检测）</small></div>
+    <ul class="pin-list">
+      <li class="pin-row">
+        <span class="pin-badge badge-uart">GPIO43 (UART1-TX)</span>
+        <span class="pin-desc">发送人脸通知 →</span>
+      </li>
+      <li class="pin-row">
+        <span class="pin-badge badge-ground">GND</span>
+        <span class="pin-desc">共地</span>
+      </li>
+      <li class="pin-row" style="margin-top:8px;opacity:.55">
+        <span class="pin-badge badge-cam">OV2640 摄像头</span>
+        <span class="pin-desc">板载（自动初始化）</span>
+      </li>
+      <li class="pin-row" style="opacity:.55">
+        <span class="pin-badge badge-power">5V / USB-C</span>
+        <span class="pin-desc">独立供电（推荐）</span>
+      </li>
+      <li class="pin-row" style="opacity:.55">
+        <span class="pin-badge badge-note">固件</span>
+        <span class="pin-desc">seeed-sense-face/</span>
+      </li>
+    </ul>
+  </div>
+
+</div><!-- /diagram-container -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     接线明细表
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section-title">📋 接线明细</div>
+<div class="connection-table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Seeed XIAO ESP32S3 Sense</th>
+      <th>连接</th>
+      <th>ElectronBot (ESP32-S3)</th>
+      <th>线色建议</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="highlight-row">
+      <td>1</td>
+      <td><strong>GPIO43</strong>（UART1 TX，板子印有 <code>TX</code>）</td>
+      <td>→</td>
+      <td><strong>GPIO1</strong>（UART2 RX）</td>
+      <td><span class="wire-color" style="background:#a78bfa"></span>紫色</td>
+      <td>人脸事件单向传输，TX → RX 交叉连接</td>
+    </tr>
+    <tr class="highlight-row">
+      <td>2</td>
+      <td><strong>GND</strong>（任意 GND 引脚）</td>
+      <td>⟺</td>
+      <td><strong>GND</strong>（任意 GND 引脚）</td>
+      <td><span class="wire-color" style="background:#6b7280"></span>黑色</td>
+      <td>两板必须共地，否则 UART 通信失败</td>
+    </tr>
+    <tr style="opacity:.65">
+      <td>3</td>
+      <td><strong>3V3</strong> 或 <strong>5V</strong>（可选）</td>
+      <td>→</td>
+      <td>ElectronBot 3.3V 或 5V 输出</td>
+      <td><span class="wire-color" style="background:#f59e0b"></span>橙/红色</td>
+      <td>可选供电。建议 Seeed 板通过独立 USB-C 供电，避免主控电流不足</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     动作流程图
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section-title">🔄 系统动作流程</div>
+<div class="flow-wrap" style="margin-bottom: 48px;">
+<div class="flow">
+  <div class="flow-step cam-step">
+    <span class="step-num">STEP 1</span>
+    <span class="step-icon">📷</span>
+    <span class="step-text">Seeed OV3660 摄像头持续采集<br>HumanFaceDetect<br>两阶段人脸检测</span>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step uart-step">
+    <span class="step-num">STEP 2</span>
+    <span class="step-icon">🎨</span>
+    <span class="step-text">人脸框下方取衣服区域<br>RGB→HSV 主色统计<br>宽高比粗判性别<br>person_id 去重（30s冷却）</span>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step uart-step">
+    <span class="step-num">STEP 3</span>
+    <span class="step-icon">📡</span>
+    <span class="step-text">UART 发送 JSON v2 通知<br><code style="font-size:.65rem">{"event":"person_greeted",</code><br><code style="font-size:.65rem">"color":"blue","gender":"male",...}</code></span>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step act-step">
+    <span class="step-num">STEP 4</span>
+    <span class="step-icon">🤖</span>
+    <span class="step-text">ElectronBot 接收通知<br>生成个性化问候语<br>舵机执行：举右手</span>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step voice-step">
+    <span class="step-num">STEP 5</span>
+    <span class="step-icon">🔊</span>
+    <span class="step-text">屏幕显示 😊 表情<br>WakeWordInvoke<br>"你好蓝色的小哥"</span>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step act-step">
+    <span class="step-num">STEP 6</span>
+    <span class="step-icon">👋</span>
+    <span class="step-text">语音播放完毕<br>舵机执行：放右手<br>屏幕恢复待机</span>
+  </div>
+</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     通信协议说明
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section-title">📨 UART 通信协议（v2）</div>
+<div class="connection-table-wrap" style="margin-bottom:48px">
+<table>
+  <thead>
+    <tr><th>参数</th><th>值</th><th>说明</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>波特率</td><td><code>115200</code></td><td>bps</td></tr>
+    <tr><td>数据格式</td><td><code>8N1</code></td><td>8 数据位，无校验，1 停止位</td></tr>
+    <tr><td>消息格式</td><td><code>JSON 行协议</code></td><td>每条消息以 <code>\n</code> 结尾</td></tr>
+    <tr class="highlight-row"><td>消息示例（v2）</td><td><code>{"event":"person_greeted","color":"blue","gender":"male","count":1,"confidence":0.92,"person_id":3}</code></td><td>Seeed → ElectronBot</td></tr>
+    <tr><td>color 字段</td><td><code>red / orange / yellow / green / cyan / blue / purple / white / black / gray / unknown</code></td><td>衣服主色（HSV 统计）</td></tr>
+    <tr><td>gender 字段</td><td><code>male / female / unknown</code></td><td>人脸宽高比粗判（非 AI 模型）</td></tr>
+    <tr><td>person_id 字段</td><td><code>0 ~ 7</code></td><td>人脸中心 X 区域编号，用于去重判断</td></tr>
+    <tr><td>去重冷却（Seeed）</td><td><code>30000 ms</code></td><td>同一 person_id 两次打招呼最小间隔</td></tr>
+    <tr><td>无人重置（Seeed）</td><td><code>12000 ms</code></td><td>超过此时间无人出现，重置所有记录</td></tr>
+    <tr><td>本地防抖（ElectronBot）</td><td><code>500 ms</code></td><td>主控端额外防连发保护</td></tr>
+    <tr><td>Seeed TX 引脚</td><td><code>GPIO43</code></td><td>XIAO ESP32S3 Sense 的 UART1 TX（印丝 TX）</td></tr>
+    <tr><td>ElectronBot RX 引脚</td><td><code>GPIO1</code></td><td>ElectronBot ESP32-S3 的空闲 IO，配置为 UART2 RX</td></tr>
+  </tbody>
+</table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     注意事项
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section-title">⚠️ 注意事项</div>
+<div class="notes-grid">
+  <div class="note-card warn">
+    <div class="note-title">🔋 供电建议</div>
+    <div class="note-body">
+      Seeed XIAO ESP32S3 Sense 工作电流可达 240mA，开启摄像头时更高。<br>
+      <strong>强烈建议</strong>通过独立 USB-C 给 Seeed 板供电，避免从 ElectronBot 取电导致主控不稳定。
+    </div>
+  </div>
+  <div class="note-card warn">
+    <div class="note-title">📍 GPIO1 占用确认</div>
+    <div class="note-body">
+      ElectronBot 使用 <code>GPIO1</code> 作为 UART2 RX。请先确认该引脚未被其他外设占用。<br>
+      如有冲突，可在 <code>face_detect_receiver.cc</code> 中修改 <code>FACE_UART_RX_PIN</code> 为其他空闲 IO。
+    </div>
+  </div>
+  <div class="note-card tip">
+    <div class="note-title">🔊 个性化问候语（v2）</div>
+    <div class="note-body">
+      问候语由代码自动生成，无需录制音频文件。<br>
+      格式示例：<strong>"你好蓝色的小哥"</strong>、<strong>"你好红色的美女"</strong>、<strong>"你好白色的朋友"</strong>。<br>
+      通过 <code>WakeWordInvoke(greeting)</code> 发送给小智，由小智 TTS 朗读。<br>
+      如需修改称谓，编辑 <code>face_detect_receiver.cc</code> 的 <code>BuildGreetingText()</code> 函数。
+    </div>
+  </div>
+  <div class="note-card tip">
+    <div class="note-title">🛠 Seeed 固件编译（v2）</div>
+    <div class="note-body">
+      从机固件为独立 ESP-IDF 工程，位于：<br>
+      <code>main/boards/electron-bot/seeed-sense-face/</code><br>
+      新增文件：<code>main/color_gender_analyzer.c/.h</code>（颜色&性别分析）<br>
+      用 <code>idf.py set-target esp32s3 &amp;&amp; idf.py build flash</code> 单独编译烧录到 Seeed 板。
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-title">📐 电压兼容性</div>
+    <div class="note-body">
+      两块板均为 3.3V IO 电平，直连无需电平转换。<br>
+      不可直接使用 5V IO（会损坏 ESP32-S3 引脚）。
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-title">🧵 接线顺序</div>
+    <div class="note-body">
+      建议接线顺序：<br>
+      1. 先接 GND（共地）<br>
+      2. 再接 TX → RX 数据线<br>
+      3. 最后给两块板上电测试
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     引脚速查表
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="section-title">📌 ElectronBot 完整引脚速查</div>
+<div class="connection-table-wrap" style="margin-bottom:48px">
+<table>
+  <thead>
+    <tr><th>引脚</th><th>用途</th><th>类型</th></tr>
+  </thead>
+  <tbody>
+    <tr class="highlight-row"><td><code>GPIO1</code></td><td>UART2 RX — 人脸检测接收（本方案新增）</td><td>输入</td></tr>
+    <tr><td><code>GPIO4</code></td><td>右臂推拉舵机 (Right Roll)</td><td>PWM输出</td></tr>
+    <tr><td><code>GPIO5</code></td><td>右臂旋转舵机 (Right Pitch)</td><td>PWM输出</td></tr>
+    <tr><td><code>GPIO6</code></td><td>躯干舵机 (Body)</td><td>PWM输出</td></tr>
+    <tr><td><code>GPIO7</code></td><td>左臂旋转舵机 (Left Pitch)</td><td>PWM输出</td></tr>
+    <tr><td><code>GPIO8</code></td><td>I2S 喇叭 LRCK</td><td>I2S输出</td></tr>
+    <tr><td><code>GPIO9</code></td><td>SPI 显示屏 RESET</td><td>SPI</td></tr>
+    <tr><td><code>GPIO10</code></td><td>SPI 显示屏 MOSI</td><td>SPI</td></tr>
+    <tr><td><code>GPIO11</code></td><td>SPI 显示屏 SCLK</td><td>SPI</td></tr>
+    <tr><td><code>GPIO12</code></td><td>SPI 显示屏 CS</td><td>SPI</td></tr>
+    <tr><td><code>GPIO13</code></td><td>SPI 显示屏 DC</td><td>SPI</td></tr>
+    <tr><td><code>GPIO14</code></td><td>充电检测</td><td>ADC输入</td></tr>
+    <tr><td><code>GPIO15</code></td><td>左臂推拉舵机 (Left Roll)</td><td>PWM输出</td></tr>
+    <tr><td><code>GPIO16</code></td><td>头部舵机 (Head)</td><td>PWM输出</td></tr>
+    <tr><td><code>GPIO17</code></td><td>I2S 喇叭 DOUT</td><td>I2S输出</td></tr>
+    <tr><td><code>GPIO18</code></td><td>I2S 喇叭 BCLK</td><td>I2S输出</td></tr>
+    <tr><td><code>GPIO40</code></td><td>I2S 麦克风 WS</td><td>I2S输入</td></tr>
+    <tr><td><code>GPIO41</code></td><td>I2S 麦克风 DIN</td><td>I2S输入</td></tr>
+    <tr><td><code>GPIO42</code></td><td>I2S 麦克风 SCK</td><td>I2S输入</td></tr>
+    <tr><td><code>GPIO46</code></td><td>显示屏背光</td><td>输出</td></tr>
+  </tbody>
+</table>
+</div>
+
+<footer>
+  小智 AI · ElectronBot 人员识别问候方案 v2 &nbsp;|&nbsp;
+  源码：<code>main/boards/electron-bot/</code> &nbsp;|&nbsp;
+  从机固件：<code>main/boards/electron-bot/seeed-sense-face/</code>
+</footer>
+
+</body>
+</html>

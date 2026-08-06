@@ -1,0 +1,5 @@
+## IDF Component Manager Manifest for Seeed Face Detector
+## 所有外部组件已放在本工程 components/ 目录，无需从网络下载
+dependencies:
+  idf:
+    version: ">=5.1.0"

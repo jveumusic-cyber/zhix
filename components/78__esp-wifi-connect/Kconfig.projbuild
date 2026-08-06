@@ -1,0 +1,17 @@
+menu "Bluetooth Audio (Bridge Mode)"
+
+config BT_A2DP_ENABLE
+    bool "Enable Bluetooth A2DP bridge mode (ESP32-S3)"
+    default n
+    help
+        Enable Bluetooth A2DP audio bridge functionality for ESP32-S3.
+        Since ESP32-S3 does not have Classic BT hardware, this enables
+        bridge mode: the main controller proxies BT requests via UART
+        to an ESP32 Bridge device which has Classic BT / A2DP support.
+
+        This registers /bt/status, /bt/scan, /bt/connect, /bt/disconnect,
+        /bt/forget, and /bt/bridge_status HTTP API endpoints on the
+        configuration portal, allowing users to scan and connect
+        Bluetooth speakers through the ESP32 Bridge.
+
+endmenu
